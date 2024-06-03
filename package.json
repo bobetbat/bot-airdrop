@@ -4,12 +4,10 @@
   "description": "A project to transfer USDC between Ethereum addresses",
   "main": "index.ts",
   "scripts": {
-    "send:loop": "ts-node scripts/send-tx-loop.ts",
     "generate:mnemonic": "ts-node scripts/generate-mnemonic.ts",
     "generate:keys": "ts-node scripts/generate-keys.ts",
     "send:native": "ts-node scripts/send-native-eth.ts",
-    "skim-unisvap-v2": "ts-node scripts/skim-unisvap-v2.ts",
-    "start": "ts-node sockets/binance-price-change.ts"
+    "send:loop": "ts-node scripts/send-tx-loop.ts"
   },
   "dependencies": {
     "@tatumio/evm-wallet-provider": "^1.0.12",
