@@ -2,7 +2,7 @@ import { Wallet, ethers } from 'ethers';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-
+import * as config from '../config'
 // Load the main .env file
 dotenv.config();
 
@@ -15,26 +15,25 @@ if (!fs.existsSync(envKeysFilePath)) {
 const envKeysContent = fs.readFileSync(envKeysFilePath, 'utf8');
 const keysConfig = dotenv.parse(envKeysContent);
 
-// ethers.js initialization
-const sepoliaAlchemyKey = 'https://eth-sepolia.g.alchemy.com/v2/' + (process.env.ALCHEMY_API_KEY || '');
-const provider = new ethers.providers.JsonRpcProvider(sepoliaAlchemyKey);
 
-// Collect private keys
-const wallets: Wallet[] = [];
-for (let i = 0; keysConfig[`PRIVATE_KEY_${i}`] !== undefined; i++) {
-  const privateKey = keysConfig[`PRIVATE_KEY_${i}`];
-  wallets.push(new ethers.Wallet(privateKey, provider));
-}
+async function distributeEth(chainId: number) {
+  // ethers.js initialization
+  const provider = new ethers.providers.JsonRpcProvider(config.rpc[chainId]);
+  console.log('rpc:', config.rpc[chainId])
+  // Collect private keys
+  const wallets: Wallet[] = [];
+  for (let i = 0; keysConfig[`PRIVATE_KEY_${i}`] !== undefined; i++) {
+    const privateKey = keysConfig[`PRIVATE_KEY_${i}`];
+    wallets.push(new ethers.Wallet(privateKey, provider));
+  }
 
-if (wallets.length < 100) {
-  throw new Error('At least 100 wallets (1 sender and 99 receivers) are required.');
-}
+  if (wallets.length < 100) {
+    throw new Error('At least 100 wallets (1 sender and 99 receivers) are required.');
+  }
 
-const senderWallet = wallets[0]; // The first wallet will send ETH
-const receiverWallets = wallets.slice(1, 100); // The next 100 wallets will receive ETH
-
-async function distributeEth() {
-  const amountToSend = ethers.utils.parseEther('0.01'); // 1 ETH divided by 100 accounts
+  const senderWallet = wallets[0]; // The first wallet will send ETH
+  const receiverWallets = wallets.slice(1, 100); // The next 100 wallets will receive ETH
+  const amountToSend = ethers.utils.parseEther('0.0001'); // 1 ETH divided by 100 accounts
 
   for (const wallet of receiverWallets) {
     try {
@@ -56,6 +55,6 @@ async function distributeEth() {
   }
 }
 
-distributeEth().catch(error => {
+distributeEth(59144).catch(error => {
   console.error('Error in distributeEth function:', error);
 });

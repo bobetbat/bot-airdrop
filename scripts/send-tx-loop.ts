@@ -3,6 +3,8 @@ import * as dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import usdtAbi from '../abis/usdt.json'
+import * as config from '../config'
+
 // Load the main .env file
 dotenv.config();
 
@@ -15,31 +17,27 @@ if (!fs.existsSync(envKeysFilePath)) {
 const envKeysContent = fs.readFileSync(envKeysFilePath, 'utf8');
 const keysConfig = dotenv.parse(envKeysContent);
 
-// USDT Contract address on the Ethereum mainnet
-const USDT_ADDRESS = '0x7169d38820dfd117c3fa1f22a697dba58d90ba06';
-const AMOUNT_OF_USDT = process.env.AMOUNT_OF_USDT || '0';
+const AMOUNT_OF_USDT = process.env.AMOUNT_OF_USDT || '1';
 
-// ethers.js initialization
-const sepoliaAlchemyKey = 'https://eth-sepolia.g.alchemy.com/v2/' + (process.env.ALCHEMY_API_KEY || '');
-const provider = new ethers.providers.JsonRpcProvider(sepoliaAlchemyKey);
+async function transferUsdt(chainId: number) {
+  console.log('rpc:', config.rpc[chainId])
+  // ethers.js initialization
+  const provider = new ethers.providers.JsonRpcProvider(config.rpc[chainId]);
+  // Collect private keys
+  const wallets: Wallet[] = [];
+  for (let i = 0; keysConfig[`PRIVATE_KEY_${i}`] !== undefined; i++) {
+    const privateKey = keysConfig[`PRIVATE_KEY_${i}`];
+    wallets.push(new ethers.Wallet(privateKey, provider));
+  }
 
-// Collect private keys
-const wallets: Wallet[] = [];
-for (let i = 0; keysConfig[`PRIVATE_KEY_${i}`] !== undefined; i++) {
-  const privateKey = keysConfig[`PRIVATE_KEY_${i}`];
-  wallets.push(new ethers.Wallet(privateKey, provider));
-}
-
-// Create a new contract instance
-const usdtContract = new ethers.Contract(USDT_ADDRESS, usdtAbi, provider);
-
-async function transferUsdt() {
-  for (let i = 0; i < wallets.length; i++) {
+  // Create a new contract instance
+  const usdtContract = new ethers.Contract(config.USDT_ADDRESS[chainId], usdtAbi, provider);
+  for (let i = 0; i < 100; i++) {
     const wallet = wallets[i];
-    const nextWallet = wallets[(i + 1) % wallets.length];
+    const nextWallet = wallets[(i + 1) % 100];
 
     try {
-      console.log(`Sending USDT from address ${wallet.address} to address ${nextWallet.address}`);
+      console.log(`Sending ${AMOUNT_OF_USDT} USDT from address ${wallet.address} to address ${nextWallet.address}`);
 
       const contractWithSigner = usdtContract.connect(wallet);
       const tx = await contractWithSigner.transfer(nextWallet.address, ethers.utils.parseUnits(AMOUNT_OF_USDT, 6));
@@ -55,6 +53,6 @@ async function transferUsdt() {
   }
 }
 
-transferUsdt().catch(error => {
+transferUsdt(59144).catch(error => {
   console.error('Error in transferUsdt function:', error);
 });
