@@ -2,8 +2,8 @@ import { Wallet, ethers } from 'ethers';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import usdtAbi from '../abis/usdt.json'
-import * as config from '../config'
+import usdtAbi from '../abis/usdt.json';
+import * as config from '../config';
 
 // Load the main .env file
 dotenv.config();
@@ -21,7 +21,7 @@ const AMOUNT_OF_USDT = process.env.AMOUNT_OF_USDT || '1';
 const NUMBER_OF_KEYS = Number(process.env.NUMBER_OF_KEYS || 1);
 
 async function transferUsdt(chainId: number) {
-  console.log('rpc:', config.rpc[chainId])
+  console.log('rpc:', config.rpc[chainId]);
   // ethers.js initialization
   const provider = new ethers.providers.JsonRpcProvider(config.rpc[chainId]);
   // Collect private keys
@@ -33,6 +33,13 @@ async function transferUsdt(chainId: number) {
 
   // Create a new contract instance
   const usdtContract = new ethers.Contract(config.USDT_ADDRESS[chainId], usdtAbi, provider);
+  const contractWithSigner = usdtContract.connect(wallets[0]);
+
+  // Estimate gas once for the first transaction
+  const gasEstimate = await contractWithSigner.estimateGas.transfer(wallets[1].address, ethers.utils.parseUnits(AMOUNT_OF_USDT, 6));
+  const gasLimit = gasEstimate.mul(105).div(100); // Increase by 5%
+  console.log("gasEstimate", ethers.utils.formatUnits(gasEstimate, 18))
+
   for (let i = 0; i < NUMBER_OF_KEYS; i++) {
     const wallet = wallets[i];
     const nextWallet = wallets[(i + 1) % NUMBER_OF_KEYS];
@@ -41,7 +48,7 @@ async function transferUsdt(chainId: number) {
       console.log(`Sending ${AMOUNT_OF_USDT} USDT from address ${wallet.address} to address ${nextWallet.address}`);
 
       const contractWithSigner = usdtContract.connect(wallet);
-      const tx = await contractWithSigner.transfer(nextWallet.address, ethers.utils.parseUnits(AMOUNT_OF_USDT, 6));
+      const tx = await contractWithSigner.transfer(nextWallet.address, ethers.utils.parseUnits(AMOUNT_OF_USDT, 6), { gasLimit });
 
       console.log(`Transaction hash: ${tx.hash}`);
 
