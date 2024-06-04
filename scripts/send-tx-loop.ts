@@ -48,7 +48,10 @@ async function transferUsdt(chainId: number) {
     const nextWallet = wallets[(i + 1) % NUMBER_OF_KEYS];
 
     try {
-      console.log(`Sending ${AMOUNT_OF_USDT} USDT from address ${wallet.address} to address ${nextWallet.address}`);
+      console.log(`------------------------------------------------------------`);
+      console.log(`Sending ${AMOUNT_OF_USDT} USDT`);
+      console.log(`From: ${wallet.address}`);
+      console.log(`To: ${nextWallet.address}`);
 
       const contractWithSigner = usdtContract.connect(wallet);
       const tx = await contractWithSigner.transfer(nextWallet.address, ethers.utils.parseUnits(AMOUNT_OF_USDT, 6), { gasLimit, gasPrice });

@@ -52,6 +52,7 @@ async function distributeEth(chainId: number) {
 
   for (const wallet of receiverWallets) {
     try {
+      console.log(`------------------------------------------------------------`);
       console.log(`Sending ${amountEth} ETH`);
       console.log(`From: ${senderWallet.address}`);
       console.log(`To: ${wallet.address}`);
