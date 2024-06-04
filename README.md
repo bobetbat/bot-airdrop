@@ -24,7 +24,9 @@ npm run generate:keys
 ```
 
 ### Distribute native token to addresses
-Sends native token from first address(`.env.keys`) to rest accounts (number can be specified as `NUMBER_OF_KEYS` in `.env`)
+- requires native token on first address from `.env.keys`
+
+Sends native token from first address(`.env.keys`) to rest accounts (number can be specified as `NUMBER_OF_KEYS` in `.env`).
 ```
 yarn send:native
 // or
@@ -32,6 +34,8 @@ npm run send:native
 ```
 
 ### Send USDT through number addresses
+- requires USDT token on first address from `.env.keys`
+
 number can be specified as `NUMBER_OF_KEYS` in `.env`
 ```
 yarn send:loop
