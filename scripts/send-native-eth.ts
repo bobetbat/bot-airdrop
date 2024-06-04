@@ -2,7 +2,7 @@ import { Wallet, ethers } from 'ethers';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import * as config from '../config'
+import * as config from '../config';
 
 // Load the main .env file
 dotenv.config();
@@ -20,8 +20,9 @@ const NUMBER_OF_KEYS = Number(process.env.NUMBER_OF_KEYS || 1);
 async function distributeEth(chainId: number) {
   // ethers.js initialization
   const provider = new ethers.providers.JsonRpcProvider(config.rpc[chainId]);
-  console.log('rpc:', config.rpc[chainId])
+  console.log('rpc:', config.rpc[chainId]);
   console.log(`Number of accounts: ${NUMBER_OF_KEYS}`);
+
   // Collect private keys
   const wallets: Wallet[] = [];
   for (let i = 0; keysConfig[`PRIVATE_KEY_${i}`] !== undefined; i++) {
@@ -35,8 +36,12 @@ async function distributeEth(chainId: number) {
 
   const senderWallet = wallets[0]; // The first wallet will send ETH
   const receiverWallets = wallets.slice(1, NUMBER_OF_KEYS); // The next NUMBER_OF_KEYS wallets will receive ETH
-  const amountEth = '0.0001'; // ETH divided by NUMBER_OF_KEYS accounts
-  const amountToSend = ethers.utils.parseEther(amountEth); // 1 ETH divided by NUMBER_OF_KEYS accounts
+  const amountEth = '0.0001'; // ETH amount to send
+  const amountToSend = ethers.utils.parseEther(amountEth);
+
+  // Fetch current gas price
+  const gasPrice = await provider.getGasPrice();
+  console.log('Current gas price:', ethers.utils.formatUnits(gasPrice, 'gwei'), 'gwei');
 
   // Estimate gas once for the first transaction
   const gasEstimate = await provider.estimateGas({
@@ -55,6 +60,7 @@ async function distributeEth(chainId: number) {
         to: wallet.address,
         value: amountToSend,
         gasLimit,
+        gasPrice,
       });
 
       console.log(`Transaction hash: ${tx.hash}`);

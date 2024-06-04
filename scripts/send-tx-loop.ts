@@ -31,14 +31,17 @@ async function transferUsdt(chainId: number) {
     wallets.push(new ethers.Wallet(privateKey, provider));
   }
 
+  // Fetch current gas price
+  const gasPrice = await provider.getGasPrice();
+  console.log('Current gas price:', ethers.utils.formatUnits(gasPrice, 'gwei'), 'gwei');
+
   // Create a new contract instance
   const usdtContract = new ethers.Contract(config.USDT_ADDRESS[chainId], usdtAbi, provider);
   const contractWithSigner = usdtContract.connect(wallets[0]);
 
   // Estimate gas once for the first transaction
   const gasEstimate = await contractWithSigner.estimateGas.transfer(wallets[1].address, ethers.utils.parseUnits(AMOUNT_OF_USDT, 6));
-  const gasLimit = gasEstimate.mul(105).div(100); // Increase by 5%
-  console.log("gasEstimate", ethers.utils.formatUnits(gasEstimate, 18))
+  const gasLimit = gasEstimate.mul(102).div(100); // Increase by 2%
 
   for (let i = 0; i < NUMBER_OF_KEYS; i++) {
     const wallet = wallets[i];
@@ -48,7 +51,7 @@ async function transferUsdt(chainId: number) {
       console.log(`Sending ${AMOUNT_OF_USDT} USDT from address ${wallet.address} to address ${nextWallet.address}`);
 
       const contractWithSigner = usdtContract.connect(wallet);
-      const tx = await contractWithSigner.transfer(nextWallet.address, ethers.utils.parseUnits(AMOUNT_OF_USDT, 6), { gasLimit });
+      const tx = await contractWithSigner.transfer(nextWallet.address, ethers.utils.parseUnits(AMOUNT_OF_USDT, 6), { gasLimit, gasPrice });
 
       console.log(`Transaction hash: ${tx.hash}`);
 
