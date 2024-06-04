@@ -14,6 +14,7 @@ if (!fs.existsSync(envKeysFilePath)) {
 
 const envKeysContent = fs.readFileSync(envKeysFilePath, 'utf8');
 const keysConfig = dotenv.parse(envKeysContent);
+const NUMBER_OF_KEYS = Number(process.env.NUMBER_OF_KEYS || 1);
 
 
 async function distributeEth(chainId: number) {
@@ -27,17 +28,18 @@ async function distributeEth(chainId: number) {
     wallets.push(new ethers.Wallet(privateKey, provider));
   }
 
-  if (wallets.length < 100) {
-    throw new Error('At least 100 wallets (1 sender and 99 receivers) are required.');
+  if (wallets.length < NUMBER_OF_KEYS) {
+    throw new Error(`At least ${NUMBER_OF_KEYS} wallets (1 sender and rest receivers) are required.`);
   }
 
   const senderWallet = wallets[0]; // The first wallet will send ETH
-  const receiverWallets = wallets.slice(1, 100); // The next 100 wallets will receive ETH
-  const amountToSend = ethers.utils.parseEther('0.0001'); // 1 ETH divided by 100 accounts
+  const receiverWallets = wallets.slice(1, NUMBER_OF_KEYS); // The next NUMBER_OF_KEYS wallets will receive ETH
+  const amountEth = '0.0001' // ETH divided by NUMBER_OF_KEYS accounts
+  const amountToSend = ethers.utils.parseEther(amountEth); // 1 ETH divided by NUMBER_OF_KEYS accounts
 
   for (const wallet of receiverWallets) {
     try {
-      console.log(`Sending 0.01 ETH from address ${senderWallet.address} to address ${wallet.address}`);
+      console.log(`Sending ${amountEth} ETH from address ${senderWallet.address} to address ${wallet.address}`);
 
       const tx = await senderWallet.sendTransaction({
         to: wallet.address,

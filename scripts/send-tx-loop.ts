@@ -18,6 +18,7 @@ const envKeysContent = fs.readFileSync(envKeysFilePath, 'utf8');
 const keysConfig = dotenv.parse(envKeysContent);
 
 const AMOUNT_OF_USDT = process.env.AMOUNT_OF_USDT || '1';
+const NUMBER_OF_KEYS = Number(process.env.NUMBER_OF_KEYS || 1);
 
 async function transferUsdt(chainId: number) {
   console.log('rpc:', config.rpc[chainId])
@@ -32,9 +33,9 @@ async function transferUsdt(chainId: number) {
 
   // Create a new contract instance
   const usdtContract = new ethers.Contract(config.USDT_ADDRESS[chainId], usdtAbi, provider);
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < NUMBER_OF_KEYS; i++) {
     const wallet = wallets[i];
-    const nextWallet = wallets[(i + 1) % 100];
+    const nextWallet = wallets[(i + 1) % NUMBER_OF_KEYS];
 
     try {
       console.log(`Sending ${AMOUNT_OF_USDT} USDT from address ${wallet.address} to address ${nextWallet.address}`);
