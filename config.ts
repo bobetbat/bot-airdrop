@@ -7,6 +7,8 @@ export const USDT_ADDRESS: Record<number, string> = {
   11155111: '0x7169d38820dfd117c3fa1f22a697dba58d90ba06',
   //linea
   59144: '0xa219439258ca9da29e9cc4ce5596924745e12b93',
+  //zksync era
+  324: "0x493257fd37edb34451f62edf8d2a0c418852ba4c"
 }
 
 export const rpc: Record<number, string> = {
@@ -14,4 +16,5 @@ export const rpc: Record<number, string> = {
   11155111: 'https://eth-sepolia.g.alchemy.com/v2/' + (process.env.ALCHEMY_API_KEY || ''),
   //linea
   59144: 'https://linea.blockpi.network/v1/rpc/public',
+  324: "https://1rpc.io/zksync2-era"
 }

@@ -67,6 +67,6 @@ async function transferUsdt(chainId: number) {
   }
 }
 
-transferUsdt(59144).catch(error => {
+transferUsdt(324).catch(error => {
   console.error('Error in transferUsdt function:', error);
 });

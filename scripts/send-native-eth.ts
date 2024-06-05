@@ -75,6 +75,6 @@ async function distributeEth(chainId: number) {
   }
 }
 
-distributeEth(59144).catch(error => {
+distributeEth(324).catch(error => {
   console.error('Error in distributeEth function:', error);
 });
