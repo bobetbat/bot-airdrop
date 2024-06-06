@@ -19,6 +19,7 @@ const keysConfig = dotenv.parse(envKeysContent);
 
 const AMOUNT_OF_USDT = process.env.AMOUNT_OF_USDT || '1';
 const NUMBER_OF_KEYS = Number(process.env.NUMBER_OF_KEYS || 1);
+const CONTINUE_FROM = Number(process.env.CONTINUE_FROM || 0);
 
 async function transferUsdt(chainId: number) {
   console.log('rpc:', config.rpc[chainId]);
@@ -44,11 +45,15 @@ async function transferUsdt(chainId: number) {
   const gasLimit = gasEstimate.mul(102).div(100); // Increase by 2%
 
   for (let i = 0; i < NUMBER_OF_KEYS; i++) {
+    if (i < CONTINUE_FROM) {
+      console.error(`skipped PRIVATE_KEY_${i}`);
+      continue
+    }
     const wallet = wallets[i];
     const nextWallet = wallets[(i + 1) % NUMBER_OF_KEYS];
-
     try {
       console.log(`------------------------------------------------------------`);
+      console.log(i);
       console.log(`Sending ${AMOUNT_OF_USDT} USDT`);
       console.log(`From: ${wallet.address}`);
       console.log(`To: ${nextWallet.address}`);

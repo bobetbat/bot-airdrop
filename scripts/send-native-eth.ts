@@ -16,6 +16,7 @@ if (!fs.existsSync(envKeysFilePath)) {
 const envKeysContent = fs.readFileSync(envKeysFilePath, 'utf8');
 const keysConfig = dotenv.parse(envKeysContent);
 const NUMBER_OF_KEYS = Number(process.env.NUMBER_OF_KEYS || 1);
+const CONTINUE_FROM = Number(process.env.CONTINUE_FROM || 0);
 
 async function distributeEth(chainId: number) {
   // ethers.js initialization
@@ -23,19 +24,10 @@ async function distributeEth(chainId: number) {
   console.log('rpc:', config.rpc[chainId]);
   console.log(`Number of accounts: ${NUMBER_OF_KEYS}`);
 
-  // Collect private keys
-  const wallets: Wallet[] = [];
-  for (let i = 0; keysConfig[`PRIVATE_KEY_${i}`] !== undefined; i++) {
-    const privateKey = keysConfig[`PRIVATE_KEY_${i}`];
-    wallets.push(new ethers.Wallet(privateKey, provider));
+  if (NUMBER_OF_KEYS < 1) {
+    throw new Error(`At least 1 wallet is required.`);
   }
 
-  if (wallets.length < NUMBER_OF_KEYS) {
-    throw new Error(`At least ${NUMBER_OF_KEYS} wallets (1 sender and rest receivers) are required.`);
-  }
-
-  const senderWallet = wallets[0]; // The first wallet will send ETH
-  const receiverWallets = wallets.slice(1, NUMBER_OF_KEYS); // The next NUMBER_OF_KEYS wallets will receive ETH
   const amountEth = '0.0001'; // ETH amount to send
   const amountToSend = ethers.utils.parseEther(amountEth);
 
@@ -43,22 +35,39 @@ async function distributeEth(chainId: number) {
   const gasPrice = await provider.getGasPrice();
   console.log('Current gas price:', ethers.utils.formatUnits(gasPrice, 'gwei'), 'gwei');
 
-  // Estimate gas once for the first transaction
-  const gasEstimate = await provider.estimateGas({
-    to: receiverWallets[0].address,
-    value: amountToSend,
-  });
-  const gasLimit = gasEstimate.mul(105).div(100); // Increase by 5%
+  // Initialize sender wallet
+  const senderWallet = new ethers.Wallet(keysConfig['PRIVATE_KEY_0'], provider);
+  // console.log(`Sender wallet address: ${senderWallet.address}`);
 
-  for (const wallet of receiverWallets) {
+  for (let i = 1; i < NUMBER_OF_KEYS; i++) {
+    const privateKey = keysConfig[`PRIVATE_KEY_${i}`];
+    if (!privateKey) {
+      console.error(`No private key found for PRIVATE_KEY_${i}`);
+      continue;
+    }
+    if (i < CONTINUE_FROM) {
+      console.error(`skipped PRIVATE_KEY_${i}`);
+      continue;
+    }
+
+    const receiverWallet = new ethers.Wallet(privateKey, provider);
+
     try {
       console.log(`------------------------------------------------------------`);
+      console.log(i);
       console.log(`Sending ${amountEth} ETH`);
       console.log(`From: ${senderWallet.address}`);
-      console.log(`To: ${wallet.address}`);
+      console.log(`To: ${receiverWallet.address}`);
+      // TODO: solve zksync network requires senderWallet.estimateGas rest networks provider.estimateGas
+      const gasEstimate = await (chainId === 324 ? senderWallet : provider).estimateGas({
+        to: receiverWallet.address,
+        value: amountToSend,
+      });
+
+      const gasLimit = gasEstimate.mul(103).div(100); // Increase by 5%
 
       const tx = await senderWallet.sendTransaction({
-        to: wallet.address,
+        to: receiverWallet.address,
         value: amountToSend,
         gasLimit,
         gasPrice,
@@ -69,7 +78,7 @@ async function distributeEth(chainId: number) {
       const receipt = await tx.wait();
       console.log(`Transaction confirmed in block number: ${receipt.blockNumber}`);
     } catch (error) {
-      console.error(`Failed to send ETH to address ${wallet.address}:`, error);
+      console.error(`Failed to send ETH to address ${receiverWallet.address}:`, error);
       break; // Stop the loop if an error occurs
     }
   }

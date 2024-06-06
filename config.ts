@@ -11,6 +11,12 @@ export const USDT_ADDRESS: Record<number, string> = {
   324: "0x493257fd37edb34451f62edf8d2a0c418852ba4c"
 }
 
+export const USDC_ADDRESS: Record<number, string> = {
+  //zksync era
+  324: "0x3355df6d4c9c3035724fd0e3914de96a5a83aaf4"
+}
+
+
 export const rpc: Record<number, string> = {
   //sepolia
   11155111: 'https://eth-sepolia.g.alchemy.com/v2/' + (process.env.ALCHEMY_API_KEY || ''),
