@@ -84,6 +84,7 @@ async function distributeEth(chainId: number) {
   }
 }
 
-distributeEth(324).catch(error => {
+const chainId = process.env.CHAIN_ID && process.env.CHAIN_ID !== '' ? Number(process.env.CHAIN_ID) : 324
+distributeEth(chainId).catch(error => {
   console.error('Error in distributeEth function:', error);
 });
