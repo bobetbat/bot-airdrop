@@ -18,9 +18,8 @@ const envKeysContent = fs.readFileSync(envKeysFilePath, 'utf8');
 const keysConfig = dotenv.parse(envKeysContent);
 
 const NUMBER_OF_KEYS = Number(process.env.NUMBER_OF_KEYS || 1);
-const CONTINUE_FROM = Number(process.env.CONTINUE_FROM || 0);
 
-export async function transferToken(chainId: number, tokenName: string) {
+export async function transferToken(chainId: number, tokenName: string, continueFrom?: number) {
   try {
     console.log('rpc:', config.rpc[chainId]);
     // ethers.js initialization
@@ -47,7 +46,7 @@ export async function transferToken(chainId: number, tokenName: string) {
 
 
     for (let i = 0; i < NUMBER_OF_KEYS; i++) {
-      if (i < CONTINUE_FROM) {
+      if (!!continueFrom && i < continueFrom) {
         console.error(`skipped PRIVATE_KEY_${i}`);
         continue
       }
@@ -76,8 +75,10 @@ export async function transferToken(chainId: number, tokenName: string) {
   }
 }
 
-const chainId = process.env.CHAIN_ID && process.env.CHAIN_ID !== '' ? Number(process.env.CHAIN_ID) : 324
-const tokenName = 'USDT'
-transferToken(chainId, tokenName).catch(error => {
+const chainId = process.env.CHAIN_ID && process.env.CHAIN_ID !== '' ? Number(process.env.CHAIN_ID) : 324;
+const tokenName = process.env.TOKEN_NAME && process.env.TOKEN_NAME !== '' ? process.env.TOKEN_NAME : 'USDT';
+const continueFrom = process.env.CONTINUE_FROM && process.env.CONTINUE_FROM !== '' ? Number(process.env.CONTINUE_FROM) : 0;
+
+transferToken(chainId, tokenName, continueFrom).catch(error => {
   console.error('Error in transferToken function:', error);
 });

@@ -15,8 +15,8 @@ yarn generate:mnemonic
 npm run generate:mnemonic
 ```
 
-### Generate 100 private keys
-Uses seed from `.env.seed` to generate and save 100 private keys to `.env.keys` file
+### Generate private keys
+Uses seed from `.env.seed` to generate and save `NUMBER_OF_KEYS` amount of private keys to `.env.keys` file
 ```
 yarn generate:keys
 // or
@@ -24,21 +24,42 @@ npm run generate:keys
 ```
 
 ### Distribute native token to addresses
-- requires native token on first address from `.env.keys`
+- requires native token on first address
+- `CHAIN_ID` can be specified, default `324` (check supported chains in `config.ts`)
+- `NUMBER_OF_KEYS` can be specified, default `1`
+- in case of broken cycle `CONTINUE_FROM` can be specified in `.env` file to continue from required index
 
-Sends native token from first address(`.env.keys`) to rest accounts (number can be specified as `NUMBER_OF_KEYS` in `.env`).
+Sends native token from first address to rest accounts.
 ```
 yarn send:native
 // or
 npm run send:native
 ```
 
-### Send USDT through number addresses
-- requires USDT token on first address from `.env.keys`
+### Send token through number addresses
+- requires desired token on first address
+- requires native token on all addresses in list
+- `CHAIN_ID` can be specified, default `324` (check supported chains in `config.ts`)
+- `NUMBER_OF_KEYS` can be specified, default `1`
+- `TOKEN_NAME` can be specified, default `USDT` (check supported tokens in `config.ts`)
+- in case of broken cycle `CONTINUE_FROM` can be specified in `.env` file to continue from required index
 
-number can be specified as `NUMBER_OF_KEYS` in `.env`
+Sends token from first address to next forming a loop
 ```
 yarn send:loop
 // or
 npm run send:loop
+```
+
+### Send all tokens through number addresses
+- requires all tokens configured on selected chain to exist on first address
+- requires native token on all addresses in list
+- `CHAIN_ID` can be specified, default `324` (check supported chains in `config.ts`)
+- `NUMBER_OF_KEYS` can be specified, default `1`
+
+Calls `send:loop` for all configured tokens
+```
+yarn send:multiloop
+// or
+npm run send:multiloop
 ```
